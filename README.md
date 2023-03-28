@@ -1,1 +1,1 @@
-# DFA
+# DFA & NFA

@@ -2,10 +2,11 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
+#include <queue>
 
 using namespace std;
 
-ifstream fin("dfa.txt");
+ifstream fin("nfa.txt");
 
 int main() {
     int nrFinal, x, nrTranz, qfrom, qto;
@@ -22,21 +23,32 @@ int main() {
         fin>>qfrom>>val>>qto;
         tranz[qfrom].push_back(make_pair(val, qto));
     }
-    int current, ok;
+    int ok;
+    queue<int> current;
+    queue<int> currentNew;
     string test;
     while(fin>>test){
-        current = 1;
+        current.push(0);
         for (int i = 0; i < test.length(); ++i) {
             ok = 0;
-            for (int j = 0; j < tranz[current].size(); ++j) {
-                if (tranz[current][j].first == test[i]) {
-                    current = tranz[current][j].second;
-                    ok = 1;
-                    break;
+            int n = current.size();
+            for (int k = 0; k < n; ++k) {
+                for (int j = 0; j < tranz[current.front()].size(); ++j) {
+                    if (tranz[current.front()][j].first == test[i]) {
+                        ok = 1;
+                        currentNew.push(tranz[current.front()][j].second);
+                    }
                 }
+                current.pop();
             }
             if (ok == 0){
                 break;
+            }
+            else{
+                current = currentNew;
+                while(currentNew.size()){
+                    currentNew.pop();
+                }
             }
         }
         if (ok == 0){
@@ -44,10 +56,15 @@ int main() {
         }
         else {
             ok = 0;
+            queue<int> aux;
             for (int i = 0; i < nrFinal; ++i) {
-                if (final[i] == current) {
-                    ok = 1;
-                    break;
+                aux = current;
+                while(aux.size()){
+                    if (final[i] == aux.front()) {
+                        ok = 1;
+                        break;
+                    }
+                    aux.pop();
                 }
             }
             if (ok == 0){
@@ -55,15 +72,26 @@ int main() {
             }
             else{
                 cout << "Cuvantul " << test << " este acceptat"<<endl;
-                current = 1;
+                while(current.size()){
+                    current.pop();
+                }
+                current.push(0);
                 cout<<0;
                 for (int i = 0; i < test.length(); ++i) {
-                    for (int j = 0; j < tranz[current].size(); ++j) {
-                        if (tranz[current][j].first == test[i]) {
-                            cout<<" ->("<<tranz[current][j].first<<") ";
-                            current = tranz[current][j].second;
-                            cout<<current;
+                    cout<<" -> ";
+                    int n = current.size();
+                    for (int k = 0; k < n; ++k) {
+                        for (int j = 0; j < tranz[current.front()].size(); ++j) {
+                            if (tranz[current.front()][j].first == test[i]) {
+                                cout<<tranz[current.front()][j].second<<" / ";
+                                currentNew.push(tranz[current.front()][j].second);
+                            }
                         }
+                        current.pop();
+                    }
+                    current = currentNew;
+                    while(currentNew.size()){
+                        currentNew.pop();
                     }
                 }
                 cout<<endl;
@@ -71,6 +99,5 @@ int main() {
         }
         cout<<endl;
     }
-
     return 0;
 }
